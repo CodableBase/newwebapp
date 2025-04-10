@@ -113,13 +113,16 @@ function updateTimer() {
         document.getElementById('gamesPlayed').textContent = gamesPlayed;
 
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'anonymous';
-        tokens = database.ref(`users/${userId}/tokens`).get()
-        tokens += score * 0.2
-            
-        database.ref(`users/${userId}`).update({
-            tokens: tokens,
+
+        database.ref(`users/${userId}`).once('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            tokens = data.tokens || 0;
+            tokens += score * 0.2;
+            database.ref(`users/${userId}`).update({
+                tokens: tokens,
+            });
+            document.getElementById('tokens').textContent = tokens.toFixed(1);
         });
-        document.getElementById('tokens').textContent = tokens.toFixed(1);
         alert(`Игра окончена! Ваш счёт: ${score}`);
     }
 }
@@ -149,8 +152,11 @@ function toggleAccount() {
     accountMenu.style.display = accountMenu.style.display === 'block' ? 'none' : 'block';
     settingsMenu.style.display = 'none';
     const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'anonymous';
-    tokens = db.ref(`users/${userId}/tokens`).get()
-    document.getElementById('tokens').textContent = tokens.toFixed(1);
+    database.ref(`users/${userId}`).once('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        tokens = data.tokens || 0;
+        document.getElementById('tokens').textContent = tokens.toFixed(1);
+    });
 }
 
 // Обработчики событий
