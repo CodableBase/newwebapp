@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div class="game-container">
+        <div id="score">Очки: 0</div>
+        <div id="timer">Время: 30</div>
+        <div id="problem"></div>
+        <input type="number" id="answer" autofocus>
+        <button id="startButton">Начать игру</button>
+        <button id="settingsButton">Настройки</button>
+        <button id="accountButton">Аккаунт</button>
+    </div>
+
+    <div id="settings-menu" class="menu">
+        <h3>Настройки</h3>
+        <label>Сложность:</label>
+        <select id="difficulty">
+            <option value="1">Легко</option>
+            <option value="2">Средне</option>
+            <option value="3">Сложно</option>
+        </select>
+        <label>Разрядность чисел:</label>
+        <select id="digits">
+            <option value="1">1 разряд</option>
+            <option value="2">2 разряда</option>
+            <option value="3">3 разряда</option>
+        </select>
+        <button id="closeSettings">Закрыть</button>
+    </div>
+
+    <div id="account-menu" class="menu">
+        <h3>Аккаунт</h3>
+        <p>Имя: <span id="name"></span></p>
+        <p>Лучший счёт: <span id="bestScore">0</span></p>
+        <p>Сыграно игр: <span id="gamesPlayed">0</span></p>
+        <p>Токены: <span id="tokens">0</span></p>
+        <button id="closeAccount">Закрыть</button>
+    </div>
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+    <script src="index.js"></script>
+    
+</body>
+</html>
