@@ -31,16 +31,19 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 
 // Элементы DOM
-const startButton = document.getElementById('startButton');
+const actionButton = document.getElementById('actionButton');
 const settingsButton = document.getElementById('settingsButton');
+const accountButton = document.getElementById('accountButton');
 const difficultySelect = document.getElementById('difficulty');
 const digitsSelect = document.getElementById('digits');
 const settingsMenu = document.getElementById('settings-menu');
 const accountMenu = document.getElementById('account-menu');
 const userName = document.getElementById('name');
+const closeSettings = document.getElementById('closeSettings');
+const closeAccount = document.getElementById('closeAccount');
 
 // Устанавливаем имя пользователя из Telegram
-userName.innerText = tg.initDataUnsafe.first_name || "Игрок";
+userName.innerText = tg.initDataUnsafe.username || "Игрок";
 
 // Функции
 function generateProblem() {
@@ -77,14 +80,12 @@ function calculatePoints() {
 }
 
 function startGame() {
-    if (isGameRunning) return;
-
     score = 0;
     timeLeft = 30;
     difficulty = difficultySelect.value;
     digits = digitsSelect.value;
     isGameRunning = true;
-    startButton.disabled = true;
+    actionButton.textContent = "Ответить"; // Меняем текст кнопки
     settingsButton.disabled = true;
 
     document.getElementById('score').textContent = `Очки: ${score}`;
@@ -105,28 +106,38 @@ function updateTimer() {
     if (timeLeft <= 0) {
         clearInterval(timer);
         isGameRunning = false;
-        startButton.disabled = false;
+        actionButton.textContent = "Начать игру"; // Возвращаем исходный текст
         settingsButton.disabled = false;
         bestScore = Math.max(bestScore, score);
         document.getElementById('bestScore').textContent = bestScore;
         document.getElementById('gamesPlayed').textContent = gamesPlayed;
 
-        // Асинхронно обновляем токены
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'anonymous';
-        database.ref(`users/${userId}/tokens`).once('value', (snapshot) => {
-            tokens = snapshot.val() || 0;
-            tokens += score * 0.2;
-            database.ref(`users/${userId}`).set({
-                tokens: tokens,
-                bestScore: bestScore,
-                gamesPlayed: gamesPlayed,
-                firstName: tg.initDataUnsafe.first_name || "Игрок"
-            });
-            document.getElementById('tokens').textContent = tokens.toFixed(1);
+        tokens = database.ref(`users/${userId}/tokens`).get()
+        tokens += score * 0.2
+            
+        database.ref(`users/${userId}`).update({
+            tokens: tokens,
         });
-
+        document.getElementById('tokens').textContent = tokens.toFixed(1);
         alert(`Игра окончена! Ваш счёт: ${score}`);
     }
+}
+
+function checkAnswer() {
+    if (!isGameRunning) {
+        startGame(); // Начинаем игру, если она не запущена
+        return;
+    }
+
+    const userAnswer = parseFloat(document.getElementById('answer').value);
+    if (userAnswer === correctAnswer) {
+        score += calculatePoints();
+        document.getElementById('score').textContent = `Очки: ${score}`;
+    }
+    document.getElementById('answer').value = '';
+    generateProblem();
+    document.getElementById('answer').focus();
 }
 
 function toggleSettings() {
@@ -138,35 +149,20 @@ function toggleAccount() {
     accountMenu.style.display = accountMenu.style.display === 'block' ? 'none' : 'block';
     settingsMenu.style.display = 'none';
     const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'anonymous';
-    database.ref(`users/${userId}`).once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        bestScore = data.bestScore || 0;
-        gamesPlayed = data.gamesPlayed || 0;
-        tokens = data.tokens || 0;
-        document.getElementById('bestScore').textContent = bestScore;
-        document.getElementById('gamesPlayed').textContent = gamesPlayed;
-        document.getElementById('tokens').textContent = tokens.toFixed(1);
-    });
+    tokens = db.ref(`users/${userId}/tokens`).get()
+    document.getElementById('tokens').textContent = tokens.toFixed(1);
 }
 
-
-startButton.addEventListener('click', startGame);
+// Обработчики событий
+actionButton.addEventListener('click', checkAnswer);
 settingsButton.addEventListener('click', toggleSettings);
 accountButton.addEventListener('click', toggleAccount);
 closeSettings.addEventListener('click', toggleSettings);
 closeAccount.addEventListener('click', toggleAccount);
 
-
-// Обработчики событий
 document.getElementById('answer').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && isGameRunning) {
-        const userAnswer = parseFloat(this.value);
-        if (userAnswer === correctAnswer) {
-            score += calculatePoints();
-            document.getElementById('score').textContent = `Очки: ${score}`;
-        }
-        this.value = '';
-        generateProblem();
+    if (e.key === 'Enter') {
+        checkAnswer();
     }
 });
 
