@@ -114,7 +114,7 @@ function updateTimer() {
 
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'anonymous';
 
-        database.ref(`users/${userId}`).once('value', (snapshot) => {
+        database.ref(`users/${userId}`).once('value').then((snapshot) => {
             const data = snapshot.val() || {};
             tokens = data.tokens || 0;
             tokens += score * 0.2;
@@ -152,7 +152,7 @@ function toggleAccount() {
     accountMenu.style.display = accountMenu.style.display === 'block' ? 'none' : 'block';
     settingsMenu.style.display = 'none';
     const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'anonymous';
-    database.ref(`users/${userId}`).once('value', (snapshot) => {
+    database.ref(`users/${userId}`).once('value').then((snapshot) => {
         const data = snapshot.val() || {};
         tokens = data.tokens || 0;
         document.getElementById('tokens').textContent = tokens.toFixed(1);
